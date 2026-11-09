@@ -6,6 +6,12 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vite-plus/test";
 
 describe("remote deployment packages", () => {
+  it("ships the exact tested GUI bundle for dependency-free Desktop installation", async () => {
+    const built = await readFile(new URL("../dist/gui-experimental.cjs", import.meta.url));
+    const shipped = await readFile(new URL("../desktop/gui-experimental.cjs", import.meta.url));
+    expect(shipped.equals(built)).toBe(true);
+  });
+
   it("rejects a Desktop Mac before initializing the server collector", () => {
     const entry = new URL("../dist/remote-server.js", import.meta.url).href;
     const result = spawnSync(

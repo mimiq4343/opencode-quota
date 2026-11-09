@@ -9,13 +9,14 @@ export default defineConfig({
     sortPackageJson: false,
     ignorePatterns: [
       "pnpm-lock.yaml",
+      "desktop/**",
       ".github/scripts/upstream-plugins/**",
       "src/data/modelsdev-pricing.min.json",
       "**/*.md",
     ],
   },
   lint: {
-    ignorePatterns: ["dist/**", ".github/scripts/upstream-plugins/**"],
+    ignorePatterns: ["dist/**", "desktop/**", ".github/scripts/upstream-plugins/**"],
     plugins: ["typescript", "unicorn", "oxc", "react"],
     categories: { correctness: "error" },
     rules: {

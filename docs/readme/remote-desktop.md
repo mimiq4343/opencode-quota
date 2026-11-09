@@ -23,13 +23,19 @@ intended remote machine; a loopback URL may legitimately be an existing SSH tunn
 
 ## Build
 
+The checked-in `desktop/` directory is the generated, GUI-only deployment tree for
+dependency-free Homebrew installation on a Desktop Mac. It contains no Node runtime,
+collector or server entrypoint. Its bundle must exactly match the tested `dist` bundle;
+the package tests reject stale shipping artifacts.
+
 Use the pnpm version in `package.json` and the checked-in lockfile:
 
 ```sh
 pnpm install --frozen-lockfile --ignore-scripts
 pnpm run build
-pnpm test
 node .github/scripts/package-remote.mjs /absolute/path/to/new-output
+# Copy new-output/desktop to this repository's desktop/ after a GUI change.
+pnpm test
 ```
 
 The output directory contains `desktop/` and `server/`. Existing role directories are never

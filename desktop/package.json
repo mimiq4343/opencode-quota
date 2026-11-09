@@ -1,0 +1,11 @@
+{
+  "name": "@mimiq4343/opencode-quota-desktop",
+  "version": "6.2.2",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "repository": "https://github.com/mimiq4343/opencode-quota",
+  "exports": {
+    "./gui-experimental": "./gui-experimental.cjs"
+  }
+}

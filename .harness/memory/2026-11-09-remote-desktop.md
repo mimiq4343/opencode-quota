@@ -8,6 +8,8 @@ Provider collection and credentials must stay on the remote Linux OpenCode serve
 Desktop receives a separate GUI-only package and uses one explicitly configured native
 connection, never the sidecar or whichever server a local session happens to select.
 See the [deployment guide](../../docs/readme/remote-desktop.md) for the maintained contract.
+The generated `desktop/` shipping tree is versioned and tested against the built GUI
+bundle so Homebrew installs the Mac UI without a Node or pnpm dependency graph.
 Private connection settings and credentials must never enter this public repository.
 
 On this date the untouched upstream `tests/settings.test.ts` suite reproduced a timeout in
