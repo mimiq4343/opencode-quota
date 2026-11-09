@@ -1,3 +1,8 @@
+> **Remote-only fork:** this repository adapts OpenCode Quota for a Linux quota server and a
+> GUI-only Desktop client. See [deployment, safety model and maintenance](docs/readme/remote-desktop.md).
+> The installation instructions below are upstream's; do not install the full upstream package
+> on the Desktop Mac for this deployment.
+
 <p align="center">
   <a href="https://github.com/slkiser/opencode-quota">
     <picture>

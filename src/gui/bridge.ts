@@ -3,10 +3,10 @@
  * (`../tui/client.ts`: newest snapshot wins, `changed` events, a poll every minute), a manual
  * check of the providers, and the usage report, settings, setup check and notices the TUI's quota
  * window reads, and its settings saves. All of
- * it comes over the quota RPC (`../rpc.ts`) from the server part in the app's own server; the
+ * it comes over the quota RPC (`../rpc.ts`) from the explicitly pinned remote server; the
  * window only lays it out.
  *
- * A call names the folder of the session on screen when that session runs on the app's own
+ * A call names the folder of the session on screen when that session runs on the pinned remote
  * server; otherwise (Home, a session on another server) it names none, and the server uses its
  * own folder.
  *
@@ -47,9 +47,9 @@ const CLIENT_CHECK_MS = 5_000;
 type ServerClient = { rpc: (definition: typeof QuotaRpc) => QuotaRpcClient };
 
 export type GuiQuotaHost = {
-  /** The client of the app's own server; read at every call, as it changes when that server restarts. */
+  /** The remote transport; read at every call, as it changes when that server restarts. */
   client(): ServerClient;
-  /** The folder of the session on screen, when it runs on the app's own server. */
+  /** A remote session's folder, or the explicitly configured remote default directory. */
   directory(): string | undefined;
   /**
    * Called with every snapshot any folder's client takes, and its folder (none: the server's

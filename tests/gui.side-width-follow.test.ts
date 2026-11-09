@@ -411,7 +411,7 @@ describe("followSideWidth", () => {
     expect(dragSide).toHaveBeenCalledTimes(2);
   });
 
-  it("leaves the width alone with the side panel closed, on a narrow screen, on Home, or on another server", () => {
+  it("leaves the width alone with the side panel closed, on a narrow screen, or on Home", () => {
     start();
     vi.mocked(whenSideStill).mockClear();
 
@@ -423,11 +423,16 @@ describe("followSideWidth", () => {
     screen.narrow = false;
     screen.session = undefined;
     show("quota", 700);
-    screen.session = { key: "remote\nses_2", server: { builtin: false } };
-    show("quota", 700);
 
     expect(whenSideStill).not.toHaveBeenCalled();
     expect(dragSide).not.toHaveBeenCalled();
+  });
+
+  it("sizes the quota panel in a remote session too", () => {
+    start();
+    screen.session = { key: "remote\nses_2", server: { builtin: false } };
+    show("quota", 700);
+    expect(dragSide).toHaveBeenCalledTimes(1);
   });
 
   it("keeps each session's own state: a session already sized is left as it is", () => {

@@ -43,9 +43,11 @@ import {
 } from "@opencode/plugin/gui";
 import { createEffect, createMemo, createSignal, onCleanup, Show } from "solid-js";
 import type { QuotaSnapshot } from "../core/types.js";
-import { createGuiQuota, type GuiQuotaHost } from "./bridge.js";
+import { createGuiQuota } from "./bridge.js";
 import { en } from "./i18n.js";
 import { QuotaPanel } from "./panel.js";
+import { RemoteStatus } from "./remote-status.js";
+import { remoteQuotaTarget } from "./remote-target.js";
 import {
   createSettingsPageState,
   SETTINGS_PAGE_ID,
@@ -149,11 +151,8 @@ function createPanelState(ctx: Context) {
 export default Plugin.define({
   i18n: { en },
   setup(ctx) {
-    // The folder and session a quota call names: a session's on the app's own server, else none.
-    const directoryOf = (session: MountedSession | undefined) =>
-      session?.server.builtin ? session.directory : undefined;
-    const sessionIDOf = (session: MountedSession | undefined) =>
-      session?.server.builtin ? session.id : undefined;
+    const target = remoteQuotaTarget(ctx);
+    const { directoryOf, sessionIDOf } = target;
     const directory = () => directoryOf(ctx.sessions.current());
     const sessionID = () => sessionIDOf(ctx.sessions.current());
     let toasts: GuiToasts | undefined;
@@ -162,12 +161,11 @@ export default Plugin.define({
     const settingsOf = (snapshot: QuotaSnapshot | undefined) =>
       surfaceSettings(snapshot, preview());
     const data = createGuiQuota({
-      // OpenCode types RPC event data as any object; the quota RPC's schema checks the snapshot.
-      client: () => ctx.client as unknown as ReturnType<GuiQuotaHost["client"]>,
+      client: target.client,
       directory,
       onSnapshot: (snapshot, folder) => toasts?.receive(snapshot, folder),
     });
-    toasts = createGuiToasts(ctx, data, settingsOf);
+    toasts = createGuiToasts(ctx, data, target, settingsOf);
     createEffect(() => {
       onCleanup(data.watch(directory(), sessionID()));
     });
@@ -224,24 +222,27 @@ export default Plugin.define({
     addSafely(ctx, Panel, {
       id: PANEL_ID,
       region: "side",
-      // Only the app's own server runs this plugin's server part, so other servers get no tab.
-      list: (input) =>
-        input.session.server.builtin && settingsOf(snapshotOf(input.session)).sidebar.show
-          ? [panelTab()]
-          : [],
+      list: (input) => (settingsOf(snapshotOf(input.session)).sidebar.show ? [panelTab()] : []),
       render: (props) => {
         createEffect(() => {
           onCleanup(data.watch(directoryOf(props.session), sessionIDOf(props.session)));
         });
         panelState.load();
         return (
-          <QuotaPanel
-            ctx={ctx}
-            snapshot={() => snapshotOf(props.session)}
-            settings={() => settingsOf(snapshotOf(props.session))}
-            open={panelState.open}
-            setOpen={(open) => panelState.set({ open })}
-          />
+          <>
+            <RemoteStatus
+              ctx={ctx}
+              failure={() => data.failure(directoryOf(props.session))}
+              snapshot={() => snapshotOf(props.session)}
+            />
+            <QuotaPanel
+              ctx={ctx}
+              snapshot={() => snapshotOf(props.session)}
+              settings={() => settingsOf(snapshotOf(props.session))}
+              open={panelState.open}
+              setOpen={(open) => panelState.set({ open })}
+            />
+          </>
         );
       },
     });
@@ -324,24 +325,26 @@ export default Plugin.define({
           );
         };
         return (
-          <Show when={shows()}>
-            <StatusStrip
-              ctx={ctx}
-              snapshot={current}
-              settings={currentSettings}
-              openWindow={() => openWindow()}
-            />
-          </Show>
+          <>
+            <RemoteStatus ctx={ctx} failure={() => data.failure(directory())} snapshot={current} />
+            <Show when={shows()}>
+              <StatusStrip
+                ctx={ctx}
+                snapshot={current}
+                settings={currentSettings}
+                openWindow={() => openWindow()}
+              />
+            </Show>
+          </>
         );
       },
     });
 
-    // The session menu's item: the usage window on Cost, for that session. Only the app's own
-    // server runs this plugin's server part, so a session on another server gets no item.
+    // Session IDs and paths are meaningful only on the explicitly pinned remote server.
     addSafely(ctx, Slot, {
       at: "session.location.menu",
       render: (input) => (
-        <Show when={input.session.server.builtin}>
+        <Show when={target.owns(input.session)}>
           <ctx.ui.Button variant="ghost" onClick={() => openWindow(input.session)}>
             {ctx.t("menu.sessionUsage")}
           </ctx.ui.Button>

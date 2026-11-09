@@ -11,6 +11,9 @@ export const en = {
   "window.unavailable": "OpenCode Quota's server plugin is not loaded on this server.",
   "window.error": "Could not load quota: {{message}}",
   "window.refresh": "Check providers now",
+  "remote.offline": "Remote quota unavailable",
+  "remote.stale": "Stale snapshot from {{time}}. Reconnect the configured server to update.",
+  "remote.noSnapshot": "No snapshot yet. Check the remote connection and plugin options.",
 
   "provider.all": "All providers",
   "provider.filter": "Provider",

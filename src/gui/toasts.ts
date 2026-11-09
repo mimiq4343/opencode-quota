@@ -43,6 +43,7 @@ import {
 import { listenForTurns } from "../tui/turn-events.js";
 import { toastSentences } from "../view/text.js";
 import type { GuiQuota } from "./bridge.js";
+import type { remoteQuotaTarget } from "./remote-target.js";
 import { surfaceSettings } from "./surface-settings.js";
 import { type PanelView, type RowSettings, toastView } from "./surfaces-model.js";
 import { type DrawnRows, drawToastRows } from "./toast-rows.js";
@@ -90,6 +91,7 @@ export type GuiToasts = {
 export function createGuiToasts(
   ctx: Context,
   data: GuiQuota,
+  target: Pick<ReturnType<typeof remoteQuotaTarget>, "server" | "owns">,
   settingsOf: (snapshot: QuotaSnapshot | undefined) => Settings = surfaceSettings,
   drawRows: DrawRows = (view, settings) => drawToastRows(ctx, view, settings),
 ): GuiToasts {
@@ -187,19 +189,11 @@ export function createGuiToasts(
     watching.observe(document.body, { childList: true, subtree: true });
   };
 
-  const builtin = () => {
-    const servers = ctx.servers;
-    if (!servers) return undefined;
-    return servers
-      .list()
-      .map((id) => servers.get(id))
-      .find((server) => server?.builtin);
-  };
-  const serverData = () => builtin()?.data as unknown as ServerData | undefined;
-  /** A session of one of this window's tabs, on the app's own server. */
+  const serverData = () => target.server()?.data as unknown as ServerData | undefined;
+  /** A session of one of this window's tabs, on the pinned remote server. */
   const inWindow = (sessionID: string) =>
     (ctx.sessions?.list() ?? []).some(
-      (session) => session.id === sessionID && session.server.builtin,
+      (session) => session.id === sessionID && target.owns(session),
     );
   const isChildSession = (sessionID: string) => {
     try {
@@ -273,7 +267,7 @@ export function createGuiToasts(
     }
   }
 
-  // The turn events of the app's own server, again when it restarts with new data.
+  // The turn events of the pinned remote server, again when it restarts with new data.
   createEffect(() => {
     const server = serverData();
     if (!server || typeof server.on !== "function") return;

@@ -50,6 +50,17 @@ function fakeWindow() {
   const added: Array<{ registry: unknown; item: unknown }> = [];
   const ctx = {
     client: { rpc: () => rpc },
+    options: { remoteServerId: "remote-vm", remoteDirectory: "/projects" },
+    servers: {
+      list: () => ["sidecar", "remote-vm"],
+      get: (id: string) => ({
+        id,
+        builtin: id === "sidecar",
+        connected: true,
+        compatible: true,
+        client: { rpc: () => rpc },
+      }),
+    },
     sessions: { current: () => undefined },
     add: (registry: unknown, item: unknown) => {
       added.push({ registry, item });
@@ -157,7 +168,7 @@ describe("GUI bundle (dist/gui-experimental.cjs)", () => {
     }
   });
 
-  it("lists no Quota tab in a session on another server", async () => {
+  it("lists the Quota tab in a remote session as well as a local session", async () => {
     const { definition } = await loadGui();
     const { ctx, added } = fakeWindow();
     definition.setup(ctx);
@@ -166,10 +177,12 @@ describe("GUI bundle (dist/gui-experimental.cjs)", () => {
     };
     const remote = { id: "remote", directory: "/remote", server: { builtin: false } };
 
-    expect(panel.list({ session: remote, open: [] })).toEqual([]);
+    expect(panel.list({ session: remote, open: [] })).toEqual([
+      expect.objectContaining({ id: "quota", pinned: true }),
+    ]);
   });
 
-  it("offers the session menu's usage item only for a session on the app's own server", async () => {
+  it("offers session usage only for the pinned remote server, never the local server", async () => {
     // The item renders through Solid's createComponent, which calls the component.
     const { definition } = await loadGui({
       "solid-js/web": {
@@ -185,11 +198,15 @@ describe("GUI bundle (dist/gui-experimental.cjs)", () => {
     const slot = added.find(
       (entry) => (entry.item as { at?: string }).at === "session.location.menu",
     )?.item as { render: (input: { session: unknown }) => unknown };
-    const session = (builtin: boolean) => ({ id: "s", directory: "/s", server: { builtin } });
+    const session = (builtin: boolean) => ({
+      id: "s",
+      directory: "/s",
+      server: { builtin, id: builtin ? "sidecar" : "remote-vm" },
+    });
 
-    expect(slot.render({ session: session(false) })).toBeFalsy();
+    expect(slot.render({ session: session(true) })).toBeFalsy();
     expect(Button).not.toHaveBeenCalled();
-    expect(slot.render({ session: session(true) })).toBe("button");
+    expect(slot.render({ session: session(false) })).toBe("button");
     expect(Button).toHaveBeenCalledTimes(1);
   });
 

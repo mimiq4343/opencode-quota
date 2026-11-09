@@ -8,6 +8,16 @@
  * takes the window's variables, and OpenCode's own Settings styles through their classes.
  */
 export const STYLE = `
+.oq-remote-state {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding: 8px 12px;
+  color: var(--text-base, #52514e);
+  border-block-end: 1px solid var(--border-weak-base, #e7e6e2);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
 .oq-window {
   --oq-text: var(--text-strong, #0b0b0b);
   --oq-text-2: var(--text-base, #52514e);

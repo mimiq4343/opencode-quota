@@ -112,7 +112,16 @@ function start(
     refresh: vi.fn(() => new Promise<void>((resolve) => waiting.push(resolve))),
     failure: () => undefined,
   } as unknown as GuiQuota;
-  const toasts = createGuiToasts(ctx, data, settingsOf, drawRows);
+  const toasts = createGuiToasts(
+    ctx,
+    data,
+    {
+      server: () => server as never,
+      owns: (session) => !!session?.server.builtin,
+    },
+    settingsOf,
+    drawRows,
+  );
   return {
     toasts,
     show,

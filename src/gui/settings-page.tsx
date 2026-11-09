@@ -28,7 +28,6 @@ import {
 import type { QuotaSnapshot, QuotaWindow } from "../core/types.js";
 import { ALL_PROVIDERS, WINDOWS } from "../core/windows.js";
 import {
-  isSettingsFilePath,
   type Notice,
   type QuotaRpcSettingsOutput,
   type QuotaRpcSettingsSchemaOutput,
@@ -1248,7 +1247,6 @@ function PluginExtras(props: SectionProps) {
 /** The settings only settings.jsonc sets, with its default, and the file itself. */
 function FileOnlyView(props: SectionProps) {
   const { ctx, draft } = props;
-  const desktop = ctx.desktop;
   const valueText = (key: string) => {
     if (key === "providers.custom") {
       const count = draft.saved()?.custom.length ?? 0;
@@ -1281,33 +1279,7 @@ function FileOnlyView(props: SectionProps) {
           </div>
         </div>
         <div data-slot="settings-row-control" class="oq-actions">
-          {/* Open and Reveal only ever hand the app the quota settings file. */}
-          <Show when={isSettingsFilePath(props.path) && desktop}>
-            {(app) => (
-              <>
-                <ctx.ui.Button
-                  icon="open-file"
-                  onClick={() =>
-                    void app()
-                      .launch(props.path)
-                      .catch(() => {})
-                  }
-                >
-                  {ctx.t("file.open")}
-                </ctx.ui.Button>
-                <ctx.ui.Button
-                  icon="folder"
-                  onClick={() =>
-                    void app()
-                      .reveal(props.path)
-                      .catch(() => {})
-                  }
-                >
-                  {ctx.t("file.reveal")}
-                </ctx.ui.Button>
-              </>
-            )}
-          </Show>
+          {/* This path belongs to Linux, so never pass it to the local Desktop file launcher. */}
           <ctx.ui.Button
             icon="copy"
             onClick={() => void ctx.system.copy(props.path).catch(() => {})}

@@ -11,6 +11,7 @@ concurrency:
 
 jobs:
   check:
+    if: github.repository == 'slkiser/opencode-quota'
     runs-on: ubuntu-latest
     permissions:
       contents: read

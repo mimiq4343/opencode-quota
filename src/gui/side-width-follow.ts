@@ -98,7 +98,7 @@ export function followSideWidth(ctx: Context, panelKey: string): void {
         (panel) => {
           try {
             const session = ctx.sessions?.current();
-            if (!session?.server.builtin) return;
+            if (!session) return;
             const tab = panel.quotaAlone ? "quota" : "other";
             held.set(session.key, tab);
             widths.set(remember(remembered(), tab, panel.width));
@@ -111,7 +111,7 @@ export function followSideWidth(ctx: Context, panelKey: string): void {
 
       const layout = ctx.layout;
       const session = ctx.sessions?.current();
-      if (!layout || !session?.server.builtin || layout.narrow()) return;
+      if (!layout || !session || layout.narrow()) return;
       if (!layout.side.opened(session)) return;
       const quotaVisible = layout.state(panelKey, session) === "visible";
 
